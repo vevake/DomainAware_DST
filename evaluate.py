@@ -39,7 +39,7 @@ def get_predicted_dialog(dialog, all_predictions, schemas, typ='dev'):
 
                 # Add prediction for requested slots.
                 state["requested_slots"] = predictions["requested_slots"]
-                
+
                 # Add prediction for user goal (slot values).
                 # Categorical slots.
                 for slot, value in predictions["slot_value"].items():
@@ -86,7 +86,7 @@ def evaluate(model, data_gen, length, schema_dict, schema_emb, typ='dev'):
     ALL_SERVICES_DICT_INV, CAT_SLOTS_DICT_INV, NON_CAT_SLOTS_DICT_INV = get_inverse_dict(schema_dict, typ)
     for b_id in range(0, length):
         d_id, utt_true, x, x_len, attn_mask, y, dial_lens, inv_align, prev_sys_frame = next(iter(data_gen))
-        with torch.no_grad(): 
+        with torch.no_grad():
             batch_services = [list(y[i].keys()) for i in range(len(y))]
             for frame in range(len(y[0])):
                 service_id =  [batch_services[i][frame] for i in range(len(y))]
@@ -98,19 +98,19 @@ def evaluate(model, data_gen, length, schema_dict, schema_emb, typ='dev'):
 
                 n_dials = x.size(0)
                 n_tokens = x.size(1)
-                
+
                 n_cat_slots = possible['cat_slots'].size(-2)
                 n_non_cat_slots = possible['non_cat_slots'].size(1)
                 n_values = possible['cat_values'].size(-2)
                 n_req_slots = possible['req_slots'].size(-2)
-                
+
                 pred = {}
                 pred['intents'] = intent_score.topk(1)[1]
                 pred['intents'] = pred['intents'].view(x.size(0), -1)
 
                 pred['req_slots'] = nn.Sigmoid()(req_slot_score)
                 pred['req_slots'] = pred['req_slots'] * masking['req_slots']
-                
+
                 pred['cat_status'] = cat_status_score.topk(1)[1]
                 pred['cat_slots'] = cat_value_score.view(n_dials, n_cat_slots, n_values)
                 pred['cat_slots'] = nn.Sigmoid()(pred['cat_slots'][:, :, 1:]) * masking['cat_values'][:, :, 1:].contiguous()
@@ -123,27 +123,27 @@ def evaluate(model, data_gen, length, schema_dict, schema_emb, typ='dev'):
                 attention_mask_non_cat = attn_mask.unsqueeze(1).repeat(1, n_non_cat_slots, 1).clone()
                 start_span_score = nn.Softmax(dim=-1)(non_cat_value_score[:, :, :, 0].squeeze(-1))
                 start_span_score[attention_mask_non_cat==0.] = 0.
-                
+
                 end_span_score = nn.Softmax(dim=-1)(non_cat_value_score[:, :, :, 1].squeeze(-1))
-                end_span_score[attention_mask_non_cat==0.] = 0.      
-                # start_span_score --> B x n_non_cat_slots x n_tokens        
-                
+                end_span_score[attention_mask_non_cat==0.] = 0.
+                # start_span_score --> B x n_non_cat_slots x n_tokens
+
                 total_score = start_span_score.unsqueeze(3) + end_span_score.unsqueeze(2)
-                # B x n_non_cat_slots x n_tokens x 1 
+                # B x n_non_cat_slots x n_tokens x 1
                 # B x n_non_cat_slots x 1 x n_tokens
                 # total_score --> B x n_non_cat_slots x n_tokens x n_tokens
 
                 start_idx = torch.arange(n_tokens).reshape(1,-1,1)
-                end_idx = torch.arange(n_tokens).reshape(1,1,-1)        
+                end_idx = torch.arange(n_tokens).reshape(1,1,-1)
                 valid_idx_mask = (start_idx <= end_idx).float().to(config.DEVICE).repeat(n_dials, n_non_cat_slots, 1, 1)
                 # invalid_idx_mask --> B x n_non_cat_slots x n_tokens x n_tokens
-                
+
                 total_score = total_score * valid_idx_mask
                 span_idx = total_score.reshape(n_dials, n_non_cat_slots, n_tokens**2)
                 # span_idx --> B x n_non_cat_slots x (n_tokens*n_tokens)
                 span_idx = span_idx.topk(1)[1].squeeze(-1).float()
                 # span_idx --> B x n_non_cat_slots x 1
-                        
+
                 pred['non_cat_value_start'] = (span_idx/n_tokens).floor()
                 # pred['non_cat_value_start'] --> B x n_non_cat_slots x 1
                 pred['non_cat_value_end'] = torch.fmod(span_idx, n_tokens)
@@ -153,17 +153,17 @@ def evaluate(model, data_gen, length, schema_dict, schema_emb, typ='dev'):
 
                 for i, d_len in enumerate(dial_lens):
                     if service_id[i] >= 0:
-                        
+
                         req_slot_pred = list(torch.nonzero(pred['req_slots'][i]>0.5).view(-1).cpu().numpy())
                         req_slot_pred = [ALL_SERVICES_DICT_INV[typ][service_id[i]]['slots'][p] for p in req_slot_pred]
-                        
+
                         cat_value = {}
                         non_cat_value = {}
                         for s in range(int(masking['cat_slots'][i].sum().item())):
                             slot_name = CAT_SLOTS_DICT_INV[typ][service_id[i]][s]['slot_name']
-                            
+
                             status = pred['cat_status'][i][s].item()
-                            if status ==1:                                    
+                            if status ==1:
                                 cat_value[slot_name] = 'dontcare'
 
                             elif status == 2:
@@ -173,22 +173,22 @@ def evaluate(model, data_gen, length, schema_dict, schema_emb, typ='dev'):
 
                         for s in range(int(masking['non_cat_slots'][i].sum().item())):
                             v = pred['non_cat_status'][i][s].item()
-            
+
                             slot_name = NON_CAT_SLOTS_DICT_INV[typ][service_id[i]][s]['slot_name']
-            
+
                             if v == 1:
                                 non_cat_value[slot_name] = 'dontcare'
                             elif v == 2:
-                                
+
                                 start_idx = int(pred['non_cat_value_start'][i][s].item())
                                 end_idx = int(pred['non_cat_value_end'][i][s].item())
-                                
+
                                 sys_res = utt_true[i][0]
                                 usr_utt = utt_true[i][1]
 
                                 sys_res_len = len(inv_align[i][0])
                                 utt_len = len(inv_align[i][1])
-                                if start_idx > 0 and start_idx < (sys_res_len+1) and end_idx < sys_res_len+1:                                    
+                                if start_idx > 0 and start_idx < (sys_res_len+1) and end_idx < sys_res_len+1:
                                     start_idx = start_idx - 1
                                     end_idx = end_idx - 1
                                     non_cat_value[slot_name] = sys_res[inv_align[i][0][start_idx][0]: inv_align[i][0][end_idx][1]+1]
@@ -214,15 +214,15 @@ def evaluate(model, data_gen, length, schema_dict, schema_emb, typ='dev'):
     schema_json_file = os.path.join(config.DATA_DIR, typ, "schema.json")
     schemas = schema.Schema(schema_json_file)
     prediction_dir = os.path.join(config.OUT_DIR, 'pred')
-    
+
     if not os.path.exists(prediction_dir):
         os.makedirs(prediction_dir)
 
     for f in os.listdir(prediction_dir):
         os.remove(os.path.join(prediction_dir,f))
-    
+
     files = get_files(typ)
-    
+
     for f in files:
         dialogues = json.load(open(f, 'r'))
         pred_dialogues= []

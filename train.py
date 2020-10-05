@@ -15,7 +15,7 @@ def main(train, dev, test):
     d_id_train, utt_true_train, x_train, x_train_len, y_train, inv_align_train, prev_sys_frame_train = train
     d_id_dev, utt_true_dev, x_dev, x_dev_len, y_dev, inv_align_dev, prev_sys_frame_dev = dev
     d_id_test, utt_true_test, x_test, x_test_len, y_test, inv_align_test, prev_sys_frame_test = test
-    
+
     model = Model(bert_dir=os.path.join(config.BERT_DIR, config.BERT_MODEL), device=config.DEVICE)
     model.to(config.DEVICE)
 
@@ -63,7 +63,7 @@ def main(train, dev, test):
 
                 n_dials = x.size(0)
                 n_tokens = x.size(1)
-                
+
                 n_cat_slots = possible['cat_slots'].size(-2)
                 n_non_cat_slots = possible['non_cat_slots'].size(-2)
                 n_values = possible['cat_values'].size(-2)
@@ -78,7 +78,7 @@ def main(train, dev, test):
 
                 true_labels['cat_values'][true_labels['cat_values']>1] = 2
                 loss['cat_status'] = lossfn.get_status_loss(cat_status_score.view(-1, 3), true_labels['cat_values'].view(-1), masking['cat_slots'])
- 
+
                 loss['non_cat_status'] = lossfn.get_status_loss(non_cat_status_score.view(-1, 3), true_labels['non_cat_values_status'].view(-1), masking['non_cat_slots'])
                 loss['non_cat_start_span'] = lossfn.get_noncat_value_loss(non_cat_value_score[:, :, :, 0].view(-1, n_tokens), true_labels['non_cat_values_start'].view(-1))
                 loss['non_cat_end_span'] = lossfn.get_noncat_value_loss(non_cat_value_score[:, :, :, 1].view(-1, n_tokens), true_labels['non_cat_values_end'].view(-1))
@@ -87,7 +87,7 @@ def main(train, dev, test):
                 req_slot_loss += loss['req_slots'].item()
                 cat_value_loss += loss['cat_slots'].item()
                 cat_status_loss += loss['cat_status'].item()
-                non_cat_status_loss += loss['non_cat_status'].item()    
+                non_cat_status_loss += loss['non_cat_status'].item()
                 non_cat_start_span_loss += loss['non_cat_start_span'].item()
                 non_cat_end_span_loss += loss['non_cat_end_span'].item()
 
@@ -103,8 +103,8 @@ def main(train, dev, test):
             scheduler.step()
             steps += 1
 
-            pbar.set_description('TL:{:.4f}, IL:{:.4f}, RL:{:.4f}, CS:{:.4f}, CL:{:.4f}, NSL:{:.4f}, NSP:{:.4f}, NEP:{:.4f}'.format(total_loss/cnt, intent_loss/cnt, req_slot_loss/cnt, cat_status_loss/cnt, cat_value_loss/cnt, non_cat_status_loss/cnt, non_cat_start_span_loss/cnt, non_cat_end_span_loss/cnt))    
-            
+            pbar.set_description('TL:{:.4f}, IL:{:.4f}, RL:{:.4f}, CS:{:.4f}, CL:{:.4f}, NSL:{:.4f}, NSP:{:.4f}, NEP:{:.4f}'.format(total_loss/cnt, intent_loss/cnt, req_slot_loss/cnt, cat_status_loss/cnt, cat_value_loss/cnt, non_cat_status_loss/cnt, non_cat_start_span_loss/cnt, non_cat_end_span_loss/cnt))
+
             if steps % config.EVAL_STEPS == 0:
                 print('Steps: {}, evauating...'.format(steps))
                 dev_pred, jnt_gl, avg_gl = evaluate(model, dev_gen, length=int(np.ceil(len(x_dev)/config.BATCH_SIZE)), schema_dict=schema_dict, schema_emb=schema_emb)
@@ -112,7 +112,7 @@ def main(train, dev, test):
                     # test_pred, jnt_gl_test, avg_gl_test = evaluate(model, test_gen, length=int(np.ceil(len(x_test)/config.BATCH_SIZE)), schema_dict=schema_dict, schema_emb=schema_emb, typ='test')
                     torch.save(model.state_dict(), config.OUT_DIR + 'model.pt')
                     best_dev_acc = avg_gl
-    
+
     model.load_state_dict(torch.load(config.OUT_DIR + 'model.pt'))
     test_pred, jnt_gl_test, avg_gl_test = evaluate(model, test_gen, length=int(np.ceil(len(x_test)/config.BATCH_SIZE)), schema_dict=schema_dict, schema_emb=schema_emb, typ='test')
 
@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
     train_dialogues, dev_dialogues, test_dialogues = get_dialogues()
     tokenizer = get_bert_tokenizer()
-    
+
     train = get_seqs(train_dialogues, tokenizer, schema_dict, schema_emb, typ='train')
     dev = get_seqs(dev_dialogues, tokenizer, schema_dict, schema_emb, typ='dev')
     test = get_seqs(test_dialogues, tokenizer, schema_dict, schema_emb, typ='test')

@@ -137,7 +137,7 @@ def noncat_slot_value_match(str_ref_list, str_hyp, use_fuzzy_match):
       # if str_ref[-1] in ['?', ',', '.']:
       #   str_ref = str_ref[:-1]
       # if str_hyp[-1] in ['?', ',', '.']:
-      #   str_hyp = str_hyp[:-1]        
+      #   str_hyp = str_hyp[:-1]
       match_score = float(str_ref == str_hyp)
       # if str_ref != str_hyp:
       #   print(str_ref, str_hyp)
@@ -145,9 +145,9 @@ def noncat_slot_value_match(str_ref_list, str_hyp, use_fuzzy_match):
     else:
       # str_ref = word_to_number.get(str_ref.lower(), str_ref)
       # str_hyp = word_to_number.get(str_hyp.lower(), str_hyp)
-      match_score = fuzzy_string_match(str_ref, str_hyp)      
+      match_score = fuzzy_string_match(str_ref, str_hyp)
       # if str_ref != str_hyp:
-        # print(str_ref, str_ref_list, str_hyp, match_score)      
+        # print(str_ref, str_ref_list, str_hyp, match_score)
     score = max(score, match_score)
   # if score < 0.9:
   #   print(str_ref_list, str_hyp, score)

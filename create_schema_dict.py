@@ -12,17 +12,17 @@ def get_schema_dict(schema):
         ALL_SERVICES_DICT[serv] = {'serv_id': i}
         ALL_SERVICES_DICT[serv].update({'serv_desc': schema['service_desc'][serv]})
         ALL_SERVICES_DICT[serv].update({'intents': {'NONE': 0}, 'intents_desc': {'NONE': ''}})
-        
+
         ALL_SERVICES_DICT_CAT[serv] = {'serv_id': i}
         ALL_SERVICES_DICT_CAT[serv].update({'serv_desc': schema['service_desc'][serv]})
-        
+
         ALL_SERVICES_DICT_NONCAT[serv] = {'serv_id': i}
-        ALL_SERVICES_DICT_NONCAT[serv].update({'serv_desc': schema['service_desc'][serv]})    
+        ALL_SERVICES_DICT_NONCAT[serv].update({'serv_desc': schema['service_desc'][serv]})
 
     for serv, intents in schema['intents'].items():
         ALL_SERVICES_DICT[serv]['intents'].update({intnt:i+1 for i, intnt in enumerate(intents)})
         ALL_SERVICES_DICT[serv]['intents_desc'].update({intnt:desc  for i, (intnt, desc) in enumerate(schema['intent_desc'][serv].items())})
-        
+
     for serv, slots in schema['slots'].items():
         ALL_SERVICES_DICT[serv]['slots'] = {s:i for i, s in enumerate(slots)}
         ALL_SERVICES_DICT[serv].update({'slots_desc': {s:desc  for i, (s, desc) in enumerate(schema['slot_desc'][serv].items())}})
@@ -35,7 +35,7 @@ def get_schema_dict(schema):
                     ALL_SERVICES_DICT_CAT[serv]['slots'].update({s:len(ALL_SERVICES_DICT_CAT[serv]['slots'])})
                 else:
                     ALL_SERVICES_DICT_NONCAT[serv]['slots'].update({s:len(ALL_SERVICES_DICT_NONCAT[serv]['slots'])})
-        
+
         ALL_SERVICES_DICT_CAT[serv].update({'slots_desc': {s:desc  for i, (s, desc) in enumerate(schema['slot_desc'][serv].items()) if s in ALL_SERVICES_DICT_CAT[serv]['slots'].keys()}})
         ALL_SERVICES_DICT_NONCAT[serv].update({'slots_desc': {s:desc  for i, (s, desc) in enumerate(schema['slot_desc'][serv].items()) if s in ALL_SERVICES_DICT_NONCAT[serv]['slots'].keys()}})
 
@@ -48,10 +48,10 @@ def get_schema_dict(schema):
                 cat.append(k)
             else:
                 non_cat.append(k)
-                
+
         NON_CAT_SLOTS_DICT[serv] = {s: {'slot_id': ALL_SERVICES_DICT_NONCAT[serv]['slots'][s]} for i, s in enumerate(non_cat)}
         CAT_SLOTS_DICT[serv] = {s: {'slot_id': ALL_SERVICES_DICT_CAT[serv]['slots'][s]} for i, s in enumerate(cat)}
-        
+
     for serv, slots in schema['values'].items():
         for k, v in slots.items():
             CAT_SLOTS_DICT[serv][k]['values'] = {'NONE': 0, 'dontcare': 1}
@@ -62,7 +62,7 @@ def get_schema_dict(schema):
 if __name__ == "__main__":
 
     schemas_to_create = ['train', 'dev', 'test']
-    
+
     if not os.path.exists(config.OUT_DIR):
         os.makedirs(config.OUT_DIR)
 

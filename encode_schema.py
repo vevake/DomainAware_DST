@@ -18,7 +18,7 @@ def get_service_repn(model, tokenizer, service):
         word_b = tokenizer.tokenize(' '.join(_naive_tokenize(v['serv_desc']))) + ["[SEP]"]
         word_tok =  word_a + word_b
         word_tok = tokenizer.convert_tokens_to_ids(word_tok)
-        max_len_tok = max(max_len_tok, len(word_tok))         
+        max_len_tok = max(max_len_tok, len(word_tok))
         item_ids[v['serv_id']] = word_tok
         item_lens[v['serv_id']] = (len(word_a), len(word_tok))
     token_ids = np.zeros([n_service, max_len_tok])
@@ -46,7 +46,7 @@ def get_schema_repn(model, tokenizer, service, typ):
         desc = v[typ+'_desc']
         serv_id = v['serv_id']
         seq = [[]] * len(names)
-        seq_len = [[]] * len(names)        
+        seq_len = [[]] * len(names)
         for i, n in enumerate(names):
             if n == "NONE":
                 word = 'None'
@@ -57,7 +57,7 @@ def get_schema_repn(model, tokenizer, service, typ):
             word_b = tokenizer.tokenize(desc[n]) + ["[SEP]"]
             word_tok =  word_a + word_b
             word_tok = tokenizer.convert_tokens_to_ids(word_tok)
-            max_len_tok = max(max_len_tok, len(word_tok))            
+            max_len_tok = max(max_len_tok, len(word_tok))
             seq[names[n]] = word_tok
             seq_len[names[n]] = (len(word_a), len(word_tok))
         max_len = max(max_len, len(names))
@@ -106,11 +106,11 @@ def get_values_repn(model, tokenizer, services, cat_slots):
             else:
                 word = ' '.join(re.split(r"([^a-zA-Z0-9])", n))
                 word = ' '.join(word.split('_'))
-                
+
             val_seq = [[]] * max_len_values
             val_seq_len = [[]] * max_len_values
             for value, idx in v[n]['values'].items():
-                
+
                 value = ' '.join(value.split('_'))
                 value = value.lower()
                 word_a = ["[CLS]"] + tokenizer.tokenize(value) + ["[SEP]"]
@@ -120,10 +120,10 @@ def get_values_repn(model, tokenizer, services, cat_slots):
                 max_len_tok = max(max_len_tok, len(word_tok))
                 val_seq[idx] = word_tok
                 val_seq_len[idx] = (len(word_a), len(word_tok))
-            
+
             slot_seq[names[n]['slot_id']] = val_seq
             slot_seq_len[names[n]['slot_id']] = val_seq_len
-            
+
         if i < max_len_slots-1:
             val_seq = [[]] * max_len_values
             val_seq_len = [[(0,0)]] * max_len_values
@@ -135,7 +135,7 @@ def get_values_repn(model, tokenizer, services, cat_slots):
         serv_seq_len[serv_id] = slot_seq_len
 
     token_ids = np.zeros([n_service, max_len_slots, max_len_values, max_len_tok])
-    attn_mask = np.zeros([n_service, max_len_slots, max_len_values, max_len_tok])        
+    attn_mask = np.zeros([n_service, max_len_slots, max_len_values, max_len_tok])
     MASK = np.zeros([n_service, max_len_slots, max_len_values])
     for i, serv in enumerate(serv_seq):
         for j, slot in enumerate(serv):
