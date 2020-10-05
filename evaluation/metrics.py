@@ -47,8 +47,6 @@ from __future__ import print_function
 import collections
 from fuzzywuzzy import fuzz
 import numpy as np
-import warnings
-warnings.filterwarnings("ignore")
 
 F1Scores = collections.namedtuple("F1Scores", ["f1", "precision", "recall"])
 
@@ -74,18 +72,6 @@ JOINT_NONCAT_ACCURACY = "joint_noncat_accuracy"
 
 NAN_VAL = "NA"
 
-word_to_number = {
-    "one": "1",
-    "two": "2",
-    "three": "3",
-    "four": "4",
-    "five": "5",
-    "six": "6",
-    "seven": "7",
-    "eight": "8",
-    "nine": "9",
-    "ten": "10"
-}
 
 def compute_f1(list_ref, list_hyp):
   """Compute F1 score from reference (grouth truth) list and hypothesis list.
@@ -134,23 +120,10 @@ def noncat_slot_value_match(str_ref_list, str_hyp, use_fuzzy_match):
   score = 0.0
   for str_ref in str_ref_list:
     if not use_fuzzy_match:
-      # if str_ref[-1] in ['?', ',', '.']:
-      #   str_ref = str_ref[:-1]
-      # if str_hyp[-1] in ['?', ',', '.']:
-      #   str_hyp = str_hyp[:-1]
       match_score = float(str_ref == str_hyp)
-      # if str_ref != str_hyp:
-      #   print(str_ref, str_hyp)
-
     else:
-      # str_ref = word_to_number.get(str_ref.lower(), str_ref)
-      # str_hyp = word_to_number.get(str_hyp.lower(), str_hyp)
       match_score = fuzzy_string_match(str_ref, str_hyp)
-      # if str_ref != str_hyp:
-        # print(str_ref, str_ref_list, str_hyp, match_score)
     score = max(score, match_score)
-  # if score < 0.9:
-  #   print(str_ref_list, str_hyp, score)
   return score
 
 
@@ -201,7 +174,7 @@ def compare_slot_values(slot_values_ref, slot_values_hyp, service,
     else:  # REF=off
       slot_active.append(False)
       if slot_name in slot_values_hyp:  # HYP=active
-        list_cor.append(1.0)
+        list_cor.append(0.0)
       else:  # HYP=off
         list_cor.append(1.0)
 
@@ -286,7 +259,7 @@ def get_average_and_joint_goal_accuracy(frame_ref, frame_hyp, service,
         all-goal / categorical-goal / non-categorical-goal accuracies.
   """
   goal_acc = {}
-  # print('fz: ', use_fuzzy_match)
+
   list_acc, slot_active, slot_cat = compare_slot_values(
       frame_ref["state"]["slot_values"], frame_hyp["state"]["slot_values"],
       service, use_fuzzy_match)
