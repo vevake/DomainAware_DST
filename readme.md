@@ -6,7 +6,7 @@
 [<img align="right" src="https://raw.githubusercontent.com/vevake/GSAT/master/imgs/unitn.png" width="20%">](https://www.unitn.it/)
 [<img align="right" src="https://raw.githubusercontent.com/vevake/GSAT/master/imgs/fbk.png" width="15%">](https://www.fbk.eu/en/)
 
-This is a PyTorch implementation of the paper: **Domain-Aware Dialogue State Tracker for Multi-Domain Dialogue Systems.** [Vevake Balaraman](https://scholar.google.it/citations?hl=it&user=GTtAXeIAAAAJ) and [Bernardo Magnini](https://scholar.google.it/citations?user=jnQE-4gAAAAJ&hl=it&oi=ao).
+This is a PyTorch implementation of the paper: **[Domain-Aware Dialogue State Tracker for Multi-Domain Dialogue Systems](https://arxiv.org/abs/2001.07526).** by [Vevake Balaraman](https://scholar.google.it/citations?hl=it&user=GTtAXeIAAAAJ) and [Bernardo Magnini](https://scholar.google.it/citations?user=jnQE-4gAAAAJ&hl=it&oi=ao).
 
 # Abstract
 
