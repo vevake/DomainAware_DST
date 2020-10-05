@@ -14,4 +14,3 @@ BATCH_SIZE = 32
 EPOCHS = 50
 LEARNING_RATE = 2e-5
 GRAD_STEPS = 1
-EVAL_STEPS = 1000 # every n eval_steps evaluation is performed on dev

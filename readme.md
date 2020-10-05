@@ -53,6 +53,12 @@ The [Schema Guided Dataset  (SGD)](https://github.com/google-research-datasets/d
     python train.py
     ```
 
+5. Test the final model
+
+    ```python
+    python test.py
+    ```
+
 # Contact
 
 Please feel free to contact me at balaraman@fbk.eu for any queries.

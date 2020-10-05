@@ -1,5 +1,5 @@
 from data_reader.utils import get_dicts, get_schema_emb
-from data_reader.read_data import get_dialogues, get_seqs, get_seqs, get_batch, get_frame_level_data
+from data_reader.read_data import get_dialogues, get_seqs, get_batch, get_frame_level_data
 from models.utils import get_bert_tokenizer
 from models.model import Model
 import numpy as np
@@ -39,7 +39,6 @@ def main(train, dev, test):
     dev_gen = get_batch(d_id_dev, utt_true_dev, x_dev, x_dev_len, y_dev, inv_align_dev, prev_sys_frame_dev, tokenizer, schema_emb, batch_size=config.BATCH_SIZE, shuffle=False, typ='dev')
     test_gen = get_batch(d_id_test, utt_true_test, x_test, x_test_len, y_test, inv_align_test, prev_sys_frame_test, tokenizer, schema_emb, batch_size=config.BATCH_SIZE, shuffle=False, typ='test')
     best_dev_acc = 0.
-    steps = 0
     lossfn = LossFn()
     for epoch in range(config.EPOCHS):
         total_loss, intent_loss, req_slot_loss, cat_value_loss, cat_status_loss, non_cat_status_loss, non_cat_start_span_loss, non_cat_end_span_loss, cnt = 0., 0., 0., 0., 0., 0., 0., 0., 0
@@ -101,17 +100,15 @@ def main(train, dev, test):
             optimizer.step()
             optimizer.zero_grad()
             scheduler.step()
-            steps += 1
 
             pbar.set_description('TL:{:.4f}, IL:{:.4f}, RL:{:.4f}, CS:{:.4f}, CL:{:.4f}, NSL:{:.4f}, NSP:{:.4f}, NEP:{:.4f}'.format(total_loss/cnt, intent_loss/cnt, req_slot_loss/cnt, cat_status_loss/cnt, cat_value_loss/cnt, non_cat_status_loss/cnt, non_cat_start_span_loss/cnt, non_cat_end_span_loss/cnt))
 
-            if steps % config.EVAL_STEPS == 0:
-                print('Steps: {}, evauating...'.format(steps))
-                dev_pred, jnt_gl, avg_gl = evaluate(model, dev_gen, length=int(np.ceil(len(x_dev)/config.BATCH_SIZE)), schema_dict=schema_dict, schema_emb=schema_emb)
-                if avg_gl > best_dev_acc:
-                    # test_pred, jnt_gl_test, avg_gl_test = evaluate(model, test_gen, length=int(np.ceil(len(x_test)/config.BATCH_SIZE)), schema_dict=schema_dict, schema_emb=schema_emb, typ='test')
-                    torch.save(model.state_dict(), config.OUT_DIR + 'model.pt')
-                    best_dev_acc = avg_gl
+        print('Evauating...')
+        dev_pred, jnt_gl, avg_gl = evaluate(model, dev_gen, length=int(np.ceil(len(x_dev)/config.BATCH_SIZE)), schema_dict=schema_dict, schema_emb=schema_emb)
+        if avg_gl > best_dev_acc:
+            # test_pred, jnt_gl_test, avg_gl_test = evaluate(model, test_gen, length=int(np.ceil(len(x_test)/config.BATCH_SIZE)), schema_dict=schema_dict, schema_emb=schema_emb, typ='test')
+            torch.save(model.state_dict(), config.OUT_DIR + 'model.pt')
+            best_dev_acc = avg_gl
 
     model.load_state_dict(torch.load(config.OUT_DIR + 'model.pt'))
     test_pred, jnt_gl_test, avg_gl_test = evaluate(model, test_gen, length=int(np.ceil(len(x_test)/config.BATCH_SIZE)), schema_dict=schema_dict, schema_emb=schema_emb, typ='test')
