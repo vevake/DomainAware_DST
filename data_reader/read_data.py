@@ -11,11 +11,11 @@ warnings.filterwarnings("ignore")
 
 def get_files(typ='train'):
     if typ == 'train':
-        files = [os.path.join(config.DATA_DIR+'train/'+f) for f in os.listdir(config.DATA_DIR+'train/') if f.split('_')[0]=='dialogues']
+        files = [os.path.join(config.DATA_DIR, 'train', f) for f in os.listdir(config.DATA_DIR+'train/') if f.split('_')[0]=='dialogues']
     elif typ == 'dev':
-        files = [os.path.join(config.DATA_DIR+'dev/'+f) for f in os.listdir(config.DATA_DIR+'dev/') if f.split('_')[0]=='dialogues']
+        files = [os.path.join(config.DATA_DIR, 'dev', f) for f in os.listdir(config.DATA_DIR+'dev/') if f.split('_')[0]=='dialogues']
     elif typ =='test':
-        files = [os.path.join(config.DATA_DIR+'test/'+f) for f in os.listdir(config.DATA_DIR+'test/') if f.split('_')[0]=='dialogues']
+        files = [os.path.join(config.DATA_DIR, 'test', f) for f in os.listdir(config.DATA_DIR+'test/') if f.split('_')[0]=='dialogues']
     else:
         print('file type error')
         exit()
@@ -28,9 +28,9 @@ def get_dialogues():
     test_files = get_files('test')
 
     if config.DOMAIN.lower() =='single':
-        train_files = [d for d in train_files if int(d.split('_')[1].strip('.json')) < 44]
+        train_files = [d for d in train_files if int(d.split('/')[-1].split('_')[1].strip('.json')) < 44]
     elif config.DOMAIN.lower() == 'multi':
-        train_files = [d for d in train_files if int(d.split('_')[1].strip('.json')) >= 44]
+        train_files = [d for d in train_files if int(d.split('/')[-1].split('_')[1].strip('.json')) >= 44]
     elif config.DOMAIN.lower() == 'all':
         pass
     else:
